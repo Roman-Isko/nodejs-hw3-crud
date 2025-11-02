@@ -5,14 +5,17 @@ const contactSchema = new mongoose.Schema(
     name: {
       type: String,
       required: [true, 'Name is required'],
+      trim: true,
+    },
+    phoneNumber: {
+      type: String,
+      required: [true, 'Phone number is required'],
+      trim: true,
     },
     email: {
       type: String,
-      required: [true, 'Email is required'],
-    },
-    phone: {
-      type: String,
-      required: [true, 'Phone number is required'],
+      trim: true,
+      default: null,
     },
     isFavourite: {
       type: Boolean,
@@ -20,11 +23,21 @@ const contactSchema = new mongoose.Schema(
     },
     contactType: {
       type: String,
-      enum: ['personal', 'work', 'other'],
+      enum: ['personal', 'business', 'other'],
       default: 'personal',
     },
+    createdAt: {
+      type: Date,
+      default: Date.now,
+    },
+    updatedAt: {
+      type: Date,
+      default: Date.now,
+    },
   },
-  { timestamps: true },
+  {
+    versionKey: false,
+  },
 );
 
 const Contact = mongoose.model('Contact', contactSchema);

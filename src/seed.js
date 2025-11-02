@@ -1,34 +1,50 @@
 import dotenv from 'dotenv';
-import fs from 'fs';
-import path from 'path';
-import { fileURLToPath } from 'url';
-import { initMongoConnection } from './db/initMongoConnection.js';
+import mongoose from 'mongoose';
 import Contact from './models/Contacts.js';
+import { contactValidationSchema } from './validation/contactValidation.js';
+import { initMongoConnection } from './db/initMongoConnection.js';
 
 dotenv.config();
 
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
+const contacts = [
+  {
+    name: 'Dmytro Boyko',
+    phoneNumber: '+380000000002',
+    email: null,
+    isFavourite: false,
+    contactType: 'personal',
+  },
+  {
+    name: 'Olena Ivanenko',
+    phoneNumber: '+380000000003',
+    email: 'olena@example.com',
+    isFavourite: true,
+    contactType: 'business',
+  },
+];
 
 async function seed() {
   try {
-    await initMongoConnection();
-    const filePath = path.join(__dirname, 'contacts.json');
-    const raw = fs.readFileSync(filePath, 'utf8');
-    const contacts = JSON.parse(raw);
+    console.log('🌱 Starting seeding process...');
 
-    if (!Array.isArray(contacts)) {
-      throw new Error('contacts.json must contain an array');
+    await initMongoConnection();
+
+    await Contact.deleteMany();
+
+    const validatedContacts = [];
+    for (const contact of contacts) {
+      const { error, value } = contactValidationSchema.validate(contact);
+      if (error)
+        throw new Error(`Invalid contact data: ${JSON.stringify(contact)}`);
+      validatedContacts.push(value);
     }
 
-    await Contact.deleteMany({});
-    await Contact.insertMany(contacts);
-
-    console.log(`Seeded ${contacts.length} contacts`);
-    process.exit(0);
-  } catch (err) {
-    console.error('Seed error:', err);
-    process.exit(1);
+    await Contact.insertMany(validatedContacts);
+    console.log('✅ Contacts successfully seeded!');
+  } catch (error) {
+    console.error(`❌ Seed error: ${error.message}`);
+  } finally {
+    await mongoose.disconnect();
   }
 }
 

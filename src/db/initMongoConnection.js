@@ -5,22 +5,15 @@ export async function initMongoConnection() {
     process.env;
 
   if (!MONGODB_URL || !MONGODB_DB) {
-    throw new Error('Missing MongoDB env variables. Check .env');
+    throw new Error('❌ Missing MongoDB env variables. Check .env');
   }
 
-  const credentials =
-    MONGODB_USER && MONGODB_PASSWORD
-      ? `${encodeURIComponent(MONGODB_USER)}:${encodeURIComponent(
-          MONGODB_PASSWORD,
-        )}@`
-      : '';
+  const uri = `mongodb+srv://${encodeURIComponent(MONGODB_USER)}:${encodeURIComponent(
+    MONGODB_PASSWORD,
+  )}@${MONGODB_URL}/${MONGODB_DB}?retryWrites=true&w=majority`;
 
-  const uri = `mongodb+srv://${credentials}${MONGODB_URL}/${MONGODB_DB}?retryWrites=true&w=majority`;
+  console.log('🔗 Generated Mongo URI:', uri.replace(/:[^:]*@/, ':****@'));
 
-  await mongoose.connect(uri, {
-    useNewUrlParser: true,
-    useUnifiedTopology: true,
-  });
-
+  await mongoose.connect(uri);
   console.log('✅ Mongo connection successfully established!');
 }

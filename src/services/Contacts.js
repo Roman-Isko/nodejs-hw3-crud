@@ -1,30 +1,27 @@
 import Contact from '../models/Contacts.js';
 
-// Отримати всі контакти
 export async function getAllContacts() {
-  return await Contact.find().lean();
+  return await Contact.find({}, '-__v').lean();
 }
 
-// Отримати контакт за ID
 export async function getContactById(contactId) {
-  return await Contact.findById(contactId).lean();
+  return await Contact.findById(contactId, '-__v').lean();
 }
 
-// Створити контакт
 export async function createContact(contactData) {
   const contact = new Contact(contactData);
-  return await contact.save();
+  const saved = await contact.save();
+  return saved.toObject({ versionKey: false });
 }
 
-// Оновити контакт
 export async function updateContact(contactId, updateData) {
   return await Contact.findByIdAndUpdate(contactId, updateData, {
     new: true,
     runValidators: true,
+    select: '-__v',
   }).lean();
 }
 
-// Видалити контакт
 export async function deleteContact(contactId) {
   const result = await Contact.findByIdAndDelete(contactId);
   return !!result;
